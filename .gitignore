@@ -1,1 +1,3 @@
-ebin/
+/ebin/
+/priv/*.so
+/c_src/*.o
