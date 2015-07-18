@@ -1,5 +1,3 @@
-%% -*- mode: erlang -*-
-
 %% Copyright (c) 2015, Grzegorz Junka
 %% All rights reserved.
 %%
@@ -24,13 +22,39 @@
 %% ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
 %% EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-{application, yolf,
- [{description, "Erlang helpers and utility functions"},
-  {vsn, "0.1.1"},
-  {modules,
-   [
-    =MODULES=
-   ]},
-  {registered, []},
-  {applications, [kernel, stdlib]}
- ]}.
+-module(yolf_p).
+
+-export([call/3, is_error/1, is_error/2, get_errors/1]).
+
+-define(PCALL_TIMEOUT, 5000).
+
+-spec call(atom(), atom(), [[term()]]) -> [{error, {atom(), any()}} | any()].
+call(M, F, ArgL) ->
+    call(M, F, ArgL, ?PCALL_TIMEOUT).
+
+call(M, F, ArgL, Timeout) ->
+    ReplyTo = self(),
+    Keys = [spawn(fun() -> ReplyTo ! {self(), promise_reply, M:F(A)} end) || A <- ArgL],
+
+    Yield = fun(Key) ->
+                    receive
+                        {Key, promise_reply, {error, _R} = E}           -> E;
+                        {Key, promise_reply, {'EXIT', {error, _R} = E}} -> E;
+                        {Key, promise_reply, {'EXIT', R}}               -> {error, R};
+                        {Key, promise_reply, R}                         -> R
+                    after Timeout                                       -> {error, timeout}
+                    end
+            end,
+    [Yield(Key) || Key <- Keys].
+
+-spec is_error(list()) -> boolean().
+is_error(List) ->
+    lists:keymember(error, 1, List).
+
+-spec is_error(list(), atom()) -> boolean().
+is_error(List, E) ->
+    lists:member({error, E}, List).
+
+-spec get_errors(list()) -> [{error, {any(), any()}}].
+get_errors(List) ->
+    [ X || {error, _} = X <- List].

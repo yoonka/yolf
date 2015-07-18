@@ -1,4 +1,4 @@
-%% Copyright (c) 2013, Grzegorz Junka
+%% Copyright (c) 2015, Grzegorz Junka
 %% All rights reserved.
 %%
 %% Redistribution and use in source and binary forms, with or without
@@ -24,44 +24,10 @@
 
 -module(yolf).
 
--export([pcall/3, is_error/1, is_error/2, get_errors/1]).
 -export([to_binary/1, to_atom/2, to_existing_atom/2, to_integer/1, to_boolean/1]).
 -export([to_ip/1]).
 -export([to_seconds/1]).
 -export([padding_2/1, last_2/1]).
-
--define(PCALL_TIMEOUT, 5000).
-
--spec pcall(atom(), atom(), [[term()]]) -> [{error, {atom(), any()}} | any()].
-pcall(M, F, ArgL) ->
-    pcall(M, F, ArgL, ?PCALL_TIMEOUT).
-
-pcall(M, F, ArgL, Timeout) ->
-    ReplyTo = self(),
-    Keys = [spawn(fun() -> ReplyTo ! {self(), promise_reply, M:F(A)} end) || A <- ArgL],
-
-    Yield = fun(Key) ->
-                    receive
-                        {Key, promise_reply, {error, _R} = E}           -> E;
-                        {Key, promise_reply, {'EXIT', {error, _R} = E}} -> E;
-                        {Key, promise_reply, {'EXIT', R}}               -> {error, R};
-                        {Key, promise_reply, R}                         -> R
-                    after Timeout                                       -> {error, timeout}
-                    end
-            end,
-    [Yield(Key) || Key <- Keys].
-
--spec is_error(list()) -> boolean().
-is_error(List) ->
-    lists:keymember(error, 1, List).
-
--spec is_error(list(), atom()) -> boolean().
-is_error(List, E) ->
-    lists:member({error, E}, List).
-
--spec get_errors(list()) -> [{error, {any(), any()}}].
-get_errors(List) ->
-    [ X || {error, _} = X <- List].
 
 to_binary({IP1, IP2, IP3, IP4}) ->
     B1 = to_binary(IP1),
