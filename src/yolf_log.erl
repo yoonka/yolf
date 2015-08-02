@@ -32,6 +32,8 @@
     info/1, info/2, info/3, info/4, info/5, info/6,
     infon/1, infon/2, infon/3, infon/4, infon/5, infon/6]).
 
+-export([flatten/1, flatten/2]).
+
 %% Api
 init() ->
     init_log(application:get_env(yolf, log_file_name)).
@@ -67,12 +69,12 @@ infon(List) when is_list(List) ->
 infon(V1) -> infon([V1]).
 
 tinfo(List) when is_list(List) ->
-    {T1, T2, T3} = now(),
+    {T1, T2, T3} = erlang:system_time(),
     info([T1, <<":">>, T2, <<":">>, T3, <<"> ">>|List]);
 tinfo(V1) -> tinfo([V1]).
 
 tinfon(List) when is_list(List) ->
-    {T1, T2, T3} = now(),
+    {T1, T2, T3} = erlang:system_time(),
     infon([T1, <<":">>, T2, <<":">>, T3, <<"> ">>|List]);
 tinfon(V1) -> tinfon([V1]).
 
@@ -100,19 +102,19 @@ tinfon(V1, V2, V3, V4) -> tinfon([V1, V2, V3, V4]).
 tinfon(V1, V2, V3, V4, V5) -> tinfon([V1, V2, V3, V4, V5]).
 tinfon(V1, V2, V3, V4, V5, V6) -> tinfon([V1, V2, V3, V4, V5, V6]).
 
-%%% Internal functions
+
+flatten(List) ->
+    flatten(List, false).
+
 flatten(List, EndLine) ->
     lists:reverse(flatten(List, [], EndLine)).
 
+flatten([endl|T], Acc, EndLine) ->
+    flatten(T, [<<"\n">>|Acc], EndLine);
+flatten([{quote, Q}|T], Acc, EndLine) ->
+    flatten(T, [<<"'">>, flatone(Q), <<"'">>|Acc], EndLine);
 flatten([H|T], Acc, EndLine) ->
-    if
-        is_binary(H) ->
-            flatten(T, [H|Acc], EndLine);
-        is_atom(H) ->
-            flatten(T, [atom_to_binary(H, utf8)|Acc], EndLine);
-        true ->
-            flatten(T, [io_lib:print(H)|Acc], EndLine)
-    end;
+    flatten(T, [flatone(H)|Acc], EndLine);
 flatten([], Acc, true) ->
     [<<"\n">>|Acc];
 flatten([], Acc, false) ->
@@ -121,3 +123,10 @@ flatten(Term, [], true) ->
     [<<"\n">>, Term];
 flatten(Term, [], false) ->
     [Term].
+
+flatone(One) ->
+    if
+        is_binary(One) -> One;
+        is_atom(One) -> atom_to_binary(One, utf8);
+        true -> io_lib:print(One)
+    end.
