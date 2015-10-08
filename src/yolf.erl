@@ -28,6 +28,7 @@
 -export([to_ip/1]).
 -export([to_seconds/1]).
 -export([padding_2/1, last_2/1]).
+-export([trim/1]).
 
 to_binary({IP1, IP2, IP3, IP4}) ->
     B1 = to_binary(IP1),
@@ -94,3 +95,7 @@ padding_2(Binary) -> last_2(<< <<"00">>/binary, Binary/binary >>).
 
 last_2(<<_, T:2/binary>>) -> T;
 last_2(<<T:2/binary>>) -> T.
+
+%% Strip all leading and/or trailing white characters
+trim(What) ->
+    re:replace(What, "(^\\s+)|(\\s+$)", "", [global, {return, list}]).
