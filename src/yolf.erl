@@ -28,7 +28,10 @@
 -export([to_ip/1]).
 -export([to_seconds/1]).
 -export([padding_2/1, last_2/1]).
+
 -export([trim/1]).
+
+-export([cmd/1]).
 
 to_binary({IP1, IP2, IP3, IP4}) ->
     B1 = to_binary(IP1),
@@ -96,6 +99,33 @@ padding_2(Binary) -> last_2(<< <<"00">>/binary, Binary/binary >>).
 last_2(<<_, T:2/binary>>) -> T;
 last_2(<<T:2/binary>>) -> T.
 
+%%------------------------------------------------------------------------------
+
 %% Strip all leading and/or trailing white characters
 trim(What) ->
     re:replace(What, "(^\\s+)|(\\s+$)", "", [global, {return, list}]).
+
+%%------------------------------------------------------------------------------
+
+cmd(Command) ->
+    Args = [binary, in, eof, hide, exit_status, {line, 2048}],
+    Port = open_port({spawn, Command}, Args),
+    get_data(Port, {<<>>, []}).
+
+get_data(Port, {Line, Lines}) ->
+    receive
+        {Port, {data, {eol, Bytes}}} ->
+            NewLine = <<Line/binary, Bytes/binary>>,
+            get_data(Port, {<<>>, [NewLine | Lines]});
+        {Port, {data, {noeol, Bytes}}} ->
+            get_data(Port, {<<Line/binary, Bytes/binary>>, Lines});
+        {Port, eof} ->
+            {exit_code(Port), lists:reverse(Lines)}
+    end.
+
+exit_code(Port) ->
+    Port ! {self(), close},
+    receive {Port, closed} -> true end,
+    %% Remove EXIT message
+    receive {'EXIT',  Port,  _} -> ok after 1 -> ok end,
+    receive {Port, {exit_status, Code}} -> Code end.
