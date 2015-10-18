@@ -29,8 +29,8 @@
 -define(SUPERVISOR(I), {I, {I, start_link, []}, permanent, infinity, supervisor, [I]}).
 -define(WORKER(I), {I, {I, start_link, []}, permanent, ?SHUTDOWN_TIMEOUT, worker, [I]}).
 
--define(LOG_SUPERVISOR(S), lager:debug(<<"=== Starting supervisor:'~p'... ===">>, [S])).
--define(LOG_WORKER(S), lager:debug(<<"=== Starting worker:'~p'... ===">>, [S])).
+-define(LOG_SUPERVISOR(S), ylog:in(<<"=== Starting supervisor:'">>, S, <<"'... ===">>)).
+-define(LOG_WORKER(S), ylog:in(<<"=== Starting worker:'">>, S, <<"'... ===">>)).
 
--define(LOG_SUPERVISOR_INIT(S), lager:info(<<"=== Supervisor:'~p' started ===">>, [S])).
--define(LOG_WORKER_INIT(S), lager:info(<<"=== Worker:'~p' started ===">>, [S])).
+-define(LOG_SUPERVISOR_INIT(S), ylog:in(<<"=== Supervisor:'">>, S, <<"' started ===">>)).
+-define(LOG_WORKER_INIT(S), ylog:in(<<"=== Worker:'">>, S, <<"' started ===">>)).

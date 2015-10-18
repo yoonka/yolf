@@ -24,14 +24,18 @@
 
 -module(yolf).
 
--export([to_binary/1, to_atom/2, to_existing_atom/2, to_integer/1, to_boolean/1]).
--export([to_ip/1]).
--export([to_seconds/1]).
+-export([to_binary/1,
+         to_list/1,
+         to_atom/2,
+         to_existing_atom/2,
+         to_integer/1,
+         to_boolean/1,
+         to_ip/1,
+         to_seconds/1]).
+
 -export([padding_2/1, last_2/1]).
 
 -export([trim/1]).
-
--export([cmd/1]).
 
 to_binary({IP1, IP2, IP3, IP4}) ->
     B1 = to_binary(IP1),
@@ -65,22 +69,33 @@ to_binary(Binary) when is_binary(Binary) ->
 to_binary(List) when is_list(List) ->
     list_to_binary(List).
 
+
+to_list(List) when is_list(List) ->
+    List;
+to_list(Bin) when is_binary(Bin) ->
+    binary_to_list(Bin).
+
+
 to_atom(Atom, Suffix) when is_binary(Suffix) ->
     binary_to_atom(<< (to_binary(Atom))/binary, Suffix/binary >>, utf8).
+
 
 to_existing_atom(Prefix, Atom) when is_binary(Prefix) ->
     binary_to_existing_atom(<< Prefix/binary, (to_binary(Atom))/binary >>, utf8).
 
+
 to_integer(Int) when is_binary(Int) ->
     list_to_integer(binary_to_list(Int)).
 
-to_boolean(true) -> true;
-to_boolean(false) -> false;
-to_boolean(<<"true">>) -> true;
+
+to_boolean(true)        -> true;
+to_boolean(false)       -> false;
+to_boolean(<<"true">>)  -> true;
 to_boolean(<<"false">>) -> false;
-to_boolean("true") -> true;
-to_boolean("false") -> false;
-to_boolean(_) -> exit(badarg).
+to_boolean("true")      -> true;
+to_boolean("false")     -> false;
+to_boolean(_)           -> exit(badarg).
+
 
 to_ip(Ip) when is_binary(Ip) ->
     [B1, B2, B3, B4] = binary:split(Ip, <<".">>, [global]),
@@ -90,8 +105,10 @@ to_ip(Ip) when is_binary(Ip) ->
     IP4 = to_integer(B4),
     {IP1, IP2, IP3, IP4}.
 
+
 to_seconds({Mega, Sec, Micro}) ->
     Mega * 1000000 + Sec + if Micro > 500000 -> 1; true -> 0 end.
+
 
 padding_2(Binary) when size(Binary) =:= 2 -> Binary;
 padding_2(Binary) -> last_2(<< <<"00">>/binary, Binary/binary >>).
@@ -104,28 +121,3 @@ last_2(<<T:2/binary>>) -> T.
 %% Strip all leading and/or trailing white characters
 trim(What) ->
     re:replace(What, "(^\\s+)|(\\s+$)", "", [global, {return, list}]).
-
-%%------------------------------------------------------------------------------
-
-cmd(Command) ->
-    Args = [binary, in, eof, hide, exit_status, {line, 2048}],
-    Port = open_port({spawn, Command}, Args),
-    get_data(Port, {<<>>, []}).
-
-get_data(Port, {Line, Lines}) ->
-    receive
-        {Port, {data, {eol, Bytes}}} ->
-            NewLine = <<Line/binary, Bytes/binary>>,
-            get_data(Port, {<<>>, [NewLine | Lines]});
-        {Port, {data, {noeol, Bytes}}} ->
-            get_data(Port, {<<Line/binary, Bytes/binary>>, Lines});
-        {Port, eof} ->
-            {exit_code(Port), lists:reverse(Lines)}
-    end.
-
-exit_code(Port) ->
-    Port ! {self(), close},
-    receive {Port, closed} -> true end,
-    %% Remove EXIT message
-    receive {'EXIT',  Port,  _} -> ok after 1 -> ok end,
-    receive {Port, {exit_status, Code}} -> Code end.

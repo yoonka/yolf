@@ -25,27 +25,65 @@
 -module(yio).
 
 -export(
-   [info/1, info/2, info/3, info/4, info/5, info/6, info/7,
+   [i/1, i/2, i/3, i/4, i/5, i/6, i/7, i/8,
+    in/1, in/2, in/3, in/4, in/5, in/6, in/7, in/8,
+    e/1, e/2, e/3, e/4, e/5, e/6, e/7, e/8,
+    en/1, en/2, en/3, en/4, en/5, en/6, en/7, en/8,
+
+    info/1, info/2, info/3, info/4, info/5, info/6, info/7,
     infon/1, infon/2, infon/3, infon/4, infon/5, infon/6, infon/7,
     error/1, error/2, error/3, error/4, error/5, error/6, error/7,
     errorn/1, errorn/2, errorn/3, errorn/4, errorn/5, errorn/6, errorn/7]).
 
 -compile({no_auto_import, [error/1]}).
 
-info(List) when is_list(List) ->
-    log(info, List, false);
+i(V1) -> info(V1).
+i(V1, V2) -> info([V1, V2]).
+i(V1, V2, V3) -> info([V1, V2, V3]).
+i(V1, V2, V3, V4) -> info([V1, V2, V3, V4]).
+i(V1, V2, V3, V4, V5) -> info([V1, V2, V3, V4, V5]).
+i(V1, V2, V3, V4, V5, V6) -> info([V1, V2, V3, V4, V5, V6]).
+i(V1, V2, V3, V4, V5, V6, V7) -> info([V1, V2, V3, V4, V5, V6, V7]).
+i(V1, V2, V3, V4, V5, V6, V7, V8) -> info([V1, V2, V3, V4, V5, V6, V7, V8]).
+
+in(V1) -> infon(V1).
+in(V1, V2) -> infon([V1, V2]).
+in(V1, V2, V3) -> infon([V1, V2, V3]).
+in(V1, V2, V3, V4) -> infon([V1, V2, V3, V4]).
+in(V1, V2, V3, V4, V5) -> infon([V1, V2, V3, V4, V5]).
+in(V1, V2, V3, V4, V5, V6) -> infon([V1, V2, V3, V4, V5, V6]).
+in(V1, V2, V3, V4, V5, V6, V7) -> infon([V1, V2, V3, V4, V5, V6, V7]).
+in(V1, V2, V3, V4, V5, V6, V7, V8) -> infon([V1, V2, V3, V4, V5, V6, V7, V8]).
+
+e(V1) -> error(V1).
+e(V1, V2) -> error([V1, V2]).
+e(V1, V2, V3) -> error([V1, V2, V3]).
+e(V1, V2, V3, V4) -> error([V1, V2, V3, V4]).
+e(V1, V2, V3, V4, V5) -> error([V1, V2, V3, V4, V5]).
+e(V1, V2, V3, V4, V5, V6) -> error([V1, V2, V3, V4, V5, V6]).
+e(V1, V2, V3, V4, V5, V6, V7) -> error([V1, V2, V3, V4, V5, V6, V7]).
+e(V1, V2, V3, V4, V5, V6, V7, V8) -> error([V1, V2, V3, V4, V5, V6, V7, V8]).
+
+en(V1) -> errorn(V1).
+en(V1, V2) -> errorn([V1, V2]).
+en(V1, V2, V3) -> errorn([V1, V2, V3]).
+en(V1, V2, V3, V4) -> errorn([V1, V2, V3, V4]).
+en(V1, V2, V3, V4, V5) -> errorn([V1, V2, V3, V4, V5]).
+en(V1, V2, V3, V4, V5, V6) -> errorn([V1, V2, V3, V4, V5, V6]).
+en(V1, V2, V3, V4, V5, V6, V7) -> errorn([V1, V2, V3, V4, V5, V6, V7]).
+en(V1, V2, V3, V4, V5, V6, V7, V8) -> errorn([V1, V2, V3, V4, V5, V6, V7, V8]).
+
+
+info(List) when is_list(List) -> log(info, List, false);
 info(V1) -> info([V1]).
 
-infon(List) when is_list(List) ->
-    log(info, List, true);
+infon(List) when is_list(List) -> log(info, List, true);
 infon(V1) -> infon([V1]).
 
-error(List) when is_list(List) ->
-    log(error, List, false);
+error(List) when is_list(List) -> log(error, List, false);
 error(V1) -> error([V1]).
 
-errorn(List) when is_list(List) ->
-    log(error, List, true);
+errorn(List) when is_list(List) -> log(error, List, true);
 errorn(V1) -> errorn([V1]).
 
 info(V1, V2) -> info([V1, V2]).
@@ -77,10 +115,7 @@ errorn(V1, V2, V3, V4, V5, V6) -> errorn([V1, V2, V3, V4, V5, V6]).
 errorn(V1, V2, V3, V4, V5, V6, V7) -> errorn([V1, V2, V3, V4, V5, V6, V7]).
 
 %%% Internal functions
-log(info, Log, EndLine) ->
-    out_log(standard_io, Log, EndLine);
-log(error, Log, EndLine) ->
-    out_log(standard_error, Log, EndLine).
+log(info, Log, EndLine) -> out_log(standard_io, Log, EndLine);
+log(error, Log, EndLine) -> out_log(standard_error, Log, EndLine).
 
-out_log(IO, Log, EndLine) ->
-    io:format(IO, yolf_log:flatten(Log, EndLine), []).
+out_log(IO, Log, EndLine) -> io:format(IO, ylog:flatten(Log, EndLine), []).
