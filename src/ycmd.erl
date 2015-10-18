@@ -22,15 +22,9 @@
 %% ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
 %% EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-%% timeout to wait for gen_serv implementations when shutting down the app
--define(SHUTDOWN_TIMEOUT, 5000).
+-module(ycmd).
 
-%% Helper macros for declaring children of a supervisor
--define(SUPERVISOR(I), {I, {I, start_link, []}, permanent, infinity, supervisor, [I]}).
--define(WORKER(I), {I, {I, start_link, []}, permanent, ?SHUTDOWN_TIMEOUT, worker, [I]}).
+-export([ensure_dir/1]).
 
--define(LOG_SUPERVISOR(S), ylog:in(<<"=== Starting supervisor:'">>, S, <<"'... ===">>)).
--define(LOG_WORKER(S), ylog:in(<<"=== Starting worker:'">>, S, <<"'... ===">>)).
-
--define(LOG_SUPERVISOR_INIT(S), ylog:in(<<"=== Supervisor:'">>, S, <<"' started ===">>)).
--define(LOG_WORKER_INIT(S), ylog:in(<<"=== Worker:'">>, S, <<"' started with PID:">>, self(), <<" ===">>)).
+ensure_dir(Dir) ->
+    filelib:ensure_dir(filename:join(Dir, <<"dummy">>)).

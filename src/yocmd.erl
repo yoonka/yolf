@@ -22,15 +22,26 @@
 %% ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
 %% EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-%% timeout to wait for gen_serv implementations when shutting down the app
--define(SHUTDOWN_TIMEOUT, 5000).
+-module(yocmd).
 
-%% Helper macros for declaring children of a supervisor
--define(SUPERVISOR(I), {I, {I, start_link, []}, permanent, infinity, supervisor, [I]}).
--define(WORKER(I), {I, {I, start_link, []}, permanent, ?SHUTDOWN_TIMEOUT, worker, [I]}).
+-export([chmod/2, mk_link/2, mk_dir/1]).
 
--define(LOG_SUPERVISOR(S), ylog:in(<<"=== Starting supervisor:'">>, S, <<"'... ===">>)).
--define(LOG_WORKER(S), ylog:in(<<"=== Starting worker:'">>, S, <<"'... ===">>)).
+chmod(Name, Mode) ->
+    yolog:i(<<"Change mode of '">>, Name, <<"' to ">>,
+            {f, ".8B", Mode}, <<": ">>),
+    check_file_op(file:change_mode(Name, Mode)).
 
--define(LOG_SUPERVISOR_INIT(S), ylog:in(<<"=== Supervisor:'">>, S, <<"' started ===">>)).
--define(LOG_WORKER_INIT(S), ylog:in(<<"=== Worker:'">>, S, <<"' started with PID:">>, self(), <<" ===">>)).
+mk_link(To, From) ->
+    yolog:i(<<"Create link to '">>, To, <<"' from '">>, From, <<"': ">>),
+    check_file_op(file:make_symlink(To, From)).
+
+mk_dir(Name) ->
+    yolog:i(<<"Create folder '">>, Name, <<"': ">>),
+    check_file_op(file:make_dir(Name)).
+
+
+check_file_op(ok) ->
+    yolog:in(<<"Done.">>);
+check_file_op({error, Err}) ->
+    yolog:en(<<"Error:">>, endl, {f,"1000p",Err}),
+    throw(Err).

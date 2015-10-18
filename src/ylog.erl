@@ -86,19 +86,13 @@ tin(List) when is_list(List) -> tinfon(?MODULE, List);
 tin(V1) -> tin([V1]).
 
 
-info(Owner, List) ->
-    disk_log:blog(Owner, flatten(List, false)).
+info(Owner, List) -> disk_log:blog(Owner, flatten(List, false)).
 
-infon(Owner, List) ->
-    disk_log:blog(Owner, flatten(List, true)).
+infon(Owner, List) -> disk_log:blog(Owner, flatten(List, true)).
 
-tinfo(Owner, List) ->
-    {T1, T2, T3} = erlang:system_time(),
-    info(Owner, [T1, <<":">>, T2, <<":">>, T3, <<"> ">>|List]).
+tinfo(Owner, List) -> info(Owner, [yolf:bin_timestamp(), <<"> ">>|List]).
 
-tinfon(Owner, List) ->
-    {T1, T2, T3} = erlang:system_time(),
-    infon(Owner, [T1, <<":">>, T2, <<":">>, T3, <<"> ">>|List]).
+tinfon(Owner, List) -> infon(Owner, [yolf:bin_timestamp(), <<"> ">>|List]).
 
 %%------------------------------------------------------------------------------
 
@@ -146,6 +140,8 @@ flatten([endl|T], Acc, EndLine) ->
     flatten(T, [<<"\n">>|Acc], EndLine);
 flatten([{quote, Q}|T], Acc, EndLine) ->
     flatten(T, [<<"'">>, flatone(Q), <<"'">>|Acc], EndLine);
+flatten([{f, F, S}|T], Acc, EndLine) ->
+    flatten(T, [io_lib:format("~"++F, [S])|Acc], EndLine);
 flatten([H|T], Acc, EndLine) ->
     flatten(T, [flatone(H)|Acc], EndLine);
 flatten([], Acc, true) ->
