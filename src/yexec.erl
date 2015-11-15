@@ -34,7 +34,8 @@ is_cmd(Bin) ->
     end.
 
 sh_cmd(Bin) ->
-    Cmd = << <<"sh -c \"">>/binary, Bin/binary, <<" 2>&1\"">>/binary >>,
+    EscBin = binary:replace(Bin, <<"\"">>, <<"\\\"">>, [global]),
+    Cmd = << <<"sh -c \"">>/binary, EscBin/binary, <<" 2>&1\"">>/binary >>,
     cmd(Cmd).
 
 cmd(Command) ->

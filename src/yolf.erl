@@ -40,6 +40,8 @@
 
 -export([trim/1]).
 
+-export([is_string/1]).
+
 
 to_list(List) when is_list(List)  -> List;
 to_list(Bin)  when is_binary(Bin) -> binary_to_list(Bin).
@@ -151,3 +153,5 @@ bin_fill(Int, Len) ->
 %% Strip all leading and/or trailing white characters
 trim(What) ->
     re:replace(What, "(^\\s+)|(\\s+$)", "", [global, {return, list}]).
+
+is_string(List) -> is_list(List) andalso is_integer(hd(List)).
