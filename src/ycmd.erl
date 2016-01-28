@@ -24,7 +24,10 @@
 
 -module(ycmd).
 
--export([ensure_dir/1]).
+-export([ensure_dir/1, ls_dir/1]).
 
 ensure_dir(Dir) ->
     filelib:ensure_dir(filename:join(Dir, <<"dummy">>)).
+
+ls_dir(Dir) ->
+    [list_to_binary(X) || X <- filelib:wildcard("*", binary_to_list(Dir))].
