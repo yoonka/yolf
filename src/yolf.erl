@@ -1,14 +1,14 @@
-%% Copyright (c) 2015, Grzegorz Junka
+%% Copyright (c) 2016, Grzegorz Junka
 %% All rights reserved.
 %%
 %% Redistribution and use in source and binary forms, with or without
 %% modification, are permitted provided that the following conditions are met:
 %%
-%% Redistributions of source code must retain the above copyright notice,
-%% this list of conditions and the following disclaimer.
-%% Redistributions in binary form must reproduce the above copyright notice,
-%% this list of conditions and the following disclaimer in the documentation
-%% and/or other materials provided with the distribution.
+%% * Redistributions of source code must retain the above copyright notice,
+%%   this list of conditions and the following disclaimer.
+%% * Redistributions in binary form must reproduce the above copyright notice,
+%%   this list of conditions and the following disclaimer in the documentation
+%%   and/or other materials provided with the distribution.
 %%
 %% THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
 %% AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
@@ -25,6 +25,8 @@
 -module(yolf).
 
 -export([to_list/1,
+         to_list/2,
+         to_map/2,
          to_atom/2,
          to_existing_atom/2,
          to_integer/1,
@@ -45,6 +47,10 @@
 
 to_list(List) when is_list(List)  -> List;
 to_list(Bin)  when is_binary(Bin) -> binary_to_list(Bin).
+
+to_list(Fields, Rec) -> lists:zip(Fields, tl(tuple_to_list(Rec))).
+
+to_map(Fields, Rec) -> maps:from_list(to_list(Fields, Rec)).
 
 to_atom(Atom, Suffix) when is_binary(Suffix) ->
     binary_to_atom(<< (to_binary(Atom))/binary, Suffix/binary >>, utf8).
