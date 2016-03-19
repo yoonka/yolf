@@ -1,6 +1,4 @@
-%% -*- mode: erlang -*-
-
-%% Copyright (c) 2013-2016, Grzegorz Junka
+%% Copyright (c) 2015-2016, Grzegorz Junka
 %% All rights reserved.
 %%
 %% Redistribution and use in source and binary forms, with or without
@@ -24,13 +22,26 @@
 %% ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
 %% EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-{application, yolf,
- [{description, "Erlang helpers and utility functions"},
-  {vsn, "0.1.1"},
-  {modules,
-   [
-    =MODULES=
-   ]},
-  {registered, []},
-  {applications, [kernel, stdlib]}
- ]}.
+-module(yocmd).
+
+-export([chmod/2, mk_link/2, mk_dir/1]).
+
+chmod(Name, Mode) ->
+    yolog:i(<<"Change mode of '">>, Name, <<"' to ">>,
+            {f, ".8B", Mode}, <<": ">>),
+    check_file_op(file:change_mode(Name, Mode)).
+
+mk_link(To, From) ->
+    yolog:i(<<"Create link to '">>, To, <<"' from '">>, From, <<"': ">>),
+    check_file_op(file:make_symlink(To, From)).
+
+mk_dir(Name) ->
+    yolog:i(<<"Create folder '">>, Name, <<"': ">>),
+    check_file_op(file:make_dir(Name)).
+
+
+check_file_op(ok) ->
+    yolog:in(<<"Done.">>);
+check_file_op({error, Err}) ->
+    yolog:en(<<"Error:">>, endl, {f,"1000p",Err}),
+    throw(Err).

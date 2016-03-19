@@ -1,6 +1,4 @@
-%% -*- mode: erlang -*-
-
-%% Copyright (c) 2013-2016, Grzegorz Junka
+%% Copyright (c) 2015-2016, Grzegorz Junka
 %% All rights reserved.
 %%
 %% Redistribution and use in source and binary forms, with or without
@@ -24,13 +22,12 @@
 %% ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
 %% EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-{application, yolf,
- [{description, "Erlang helpers and utility functions"},
-  {vsn, "0.1.1"},
-  {modules,
-   [
-    =MODULES=
-   ]},
-  {registered, []},
-  {applications, [kernel, stdlib]}
- ]}.
+-module(ycmd).
+
+-export([ensure_dir/1, ls_dir/1]).
+
+ensure_dir(Dir) ->
+    filelib:ensure_dir(filename:join(Dir, <<"dummy">>)).
+
+ls_dir(Dir) ->
+    [list_to_binary(X) || X <- filelib:wildcard("*", binary_to_list(Dir))].

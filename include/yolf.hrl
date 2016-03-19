@@ -1,6 +1,4 @@
-%% -*- mode: erlang -*-
-
-%% Copyright (c) 2013-2016, Grzegorz Junka
+%% Copyright (c) 2015-2016, Grzegorz Junka
 %% All rights reserved.
 %%
 %% Redistribution and use in source and binary forms, with or without
@@ -24,13 +22,15 @@
 %% ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
 %% EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-{application, yolf,
- [{description, "Erlang helpers and utility functions"},
-  {vsn, "0.1.1"},
-  {modules,
-   [
-    =MODULES=
-   ]},
-  {registered, []},
-  {applications, [kernel, stdlib]}
- ]}.
+%% timeout to wait for gen_serv implementations when shutting down the app
+-define(SHUTDOWN_TIMEOUT, 5000).
+
+%% Helper macros for declaring children of a supervisor
+-define(SUPERVISOR(I), {I, {I, start_link, []}, permanent, infinity, supervisor, [I]}).
+-define(WORKER(I), {I, {I, start_link, []}, permanent, ?SHUTDOWN_TIMEOUT, worker, [I]}).
+
+-define(LOG_SUPERVISOR(S), ylog:in(<<"=== Starting supervisor:'">>, S, <<"'... ===">>)).
+-define(LOG_WORKER(S), ylog:in(<<"=== Starting worker:'">>, S, <<"'... ===">>)).
+
+-define(LOG_SUPERVISOR_INIT(S), ylog:in(<<"=== Supervisor:'">>, S, <<"' started ===">>)).
+-define(LOG_WORKER_INIT(S), ylog:in(<<"=== Worker:'">>, S, <<"' started with PID:">>, self(), <<" ===">>)).

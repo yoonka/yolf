@@ -1,6 +1,4 @@
-%% -*- mode: erlang -*-
-
-%% Copyright (c) 2013-2016, Grzegorz Junka
+%% Copyright (c) 2015-2016, Grzegorz Junka
 %% All rights reserved.
 %%
 %% Redistribution and use in source and binary forms, with or without
@@ -24,13 +22,41 @@
 %% ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
 %% EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-{application, yolf,
- [{description, "Erlang helpers and utility functions"},
-  {vsn, "0.1.1"},
-  {modules,
-   [
-    =MODULES=
-   ]},
-  {registered, []},
-  {applications, [kernel, stdlib]}
- ]}.
+-module(yexec).
+
+
+-export([is_cmd/1, sh_cmd/1, cmd/1]).
+
+is_cmd(Bin) ->
+    case sh_cmd(<< <<"which ">>/binary, Bin/binary >>) of
+        {0, _} -> true;
+        _ -> false
+    end.
+
+sh_cmd(Bin) ->
+    EscBin = binary:replace(Bin, <<"\"">>, <<"\\\"">>, [global]),
+    Cmd = << <<"sh -c \"">>/binary, EscBin/binary, <<" 2>&1\"">>/binary >>,
+    cmd(Cmd).
+
+cmd(Command) ->
+    Args = [binary, in, eof, hide, exit_status, {line, 2048}],
+    Port = open_port({spawn, Command}, Args),
+    get_data(Port, {<<>>, []}).
+
+get_data(Port, {Line, Lines}) ->
+    receive
+        {Port, {data, {eol, Bytes}}} ->
+            NewLine = <<Line/binary, Bytes/binary>>,
+            get_data(Port, {<<>>, [NewLine | Lines]});
+        {Port, {data, {noeol, Bytes}}} ->
+            get_data(Port, {<<Line/binary, Bytes/binary>>, Lines});
+        {Port, eof} ->
+            {exit_code(Port), lists:reverse(Lines)}
+    end.
+
+exit_code(Port) ->
+    Port ! {self(), close},
+    receive {Port, closed} -> true end,
+    %% Remove EXIT message
+    receive {'EXIT',  Port,  _} -> ok after 1 -> ok end,
+    receive {Port, {exit_status, Code}} -> Code end.
