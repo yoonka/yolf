@@ -30,4 +30,5 @@ ensure_dir(Dir) ->
     filelib:ensure_dir(filename:join(Dir, <<"dummy">>)).
 
 ls_dir(Dir) ->
-    [list_to_binary(X) || X <- filelib:wildcard("*", binary_to_list(Dir))].
+    {ok, Files} = file:list_dir(Dir),
+    [list_to_binary(X) || X <- Files].
